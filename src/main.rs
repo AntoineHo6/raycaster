@@ -6,6 +6,17 @@ use player::PlayerPlugin;
 mod systems;
 use systems::*;
 
+const MAP: [u8; 64] = [
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 1, 1, 1, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 1,
+    1, 1, 1, 1, 1, 1 ,1 ,1,
+]; 
+
 fn main() {
     App::new()
         .add_systems(Startup, spawn_map)

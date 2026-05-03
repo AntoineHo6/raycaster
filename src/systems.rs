@@ -1,15 +1,17 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::BLUE, prelude::*};
 
-const MAP: [[u8; 8]; 8] = [
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1 ,1 ,1],
-]; 
+use crate::MAP;
+
+// const MAP: [[u8; 8]; 8] = [
+//     [1, 1, 1, 1, 1, 1, 1, 1],
+//     [1, 0, 0, 0, 0, 0, 0, 1],
+//     [1, 0, 0, 0, 0, 0, 0, 1],
+//     [1, 0, 0, 0, 0, 1, 0, 1],
+//     [1, 0, 0, 0, 0, 0, 0, 1],
+//     [1, 0, 0, 0, 0, 0, 0, 1],
+//     [1, 0, 0, 0, 0, 0, 0, 1],
+//     [1, 1, 1, 1, 1, 1 ,1 ,1],
+// ]; 
 
 pub fn spawn_map(mut commands: Commands, mut windows: Query<&mut Window>) {
     // Set the window res
@@ -21,12 +23,16 @@ pub fn spawn_map(mut commands: Commands, mut windows: Query<&mut Window>) {
     commands.spawn(Camera2d);
 
     // // Spawn map
-    for (y, row) in MAP.iter().enumerate() {
-        for (x, &cell) in row.iter().enumerate() {
-            let x_coord = x as f32 * 64. - (window.width() / 2.0) + 32.;
-            let y_coord = y as f32 * 64. - (window.height() / 2.0) + 32.;
+    for x in 0..8 {
+        for y in 0..8 {
+            // let x_coord = x as f32 * 64. - (window.width() / 2.0) + 32.;
+            // let y_coord = y as f32 * 64. - (window.height() / 2.0) + 32.;
             
-            if cell == 1 {
+            let x_coord = -(window.width() / 2.0) + (x as f32 * 64.) + 32.;
+            let y_coord = (window.width() / 2.0) - (y as f32 * 64.) -32.;
+            
+
+            if MAP[y*8+x] == 1 {
                 commands.spawn((
                     Sprite {
                         color: Color::WHITE,
