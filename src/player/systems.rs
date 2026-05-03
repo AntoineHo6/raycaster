@@ -1,9 +1,8 @@
-use bevy::color::palettes::tailwind::GREEN_950;
-use bevy::{color::palettes::tailwind::GREEN_100, prelude::*};
+use bevy::{color::palettes::css::BLUE, prelude::*};
 
 use bevy::color::palettes::basic::RED;
 use bevy::math::Rot2;
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
+use std::f32::consts::{FRAC_PI_2, PI};
 
 use crate::MAP;
 
@@ -87,11 +86,12 @@ pub fn draw_player_sight(
     }
 }
 
+
 pub fn draw_rays(
     mut gizmos: Gizmos,
     mut player_query: Query<(&mut Transform, &mut Player), With<Player>>,
 ) {
-    if let Ok((transform, mut player)) = player_query.single_mut() {
+    if let Ok((transform, player)) = player_query.single_mut() {
         let arc_tan = 1. / player.angle.tan();
 
         let player_x = transform.translation.x;
@@ -100,8 +100,8 @@ pub fn draw_rays(
         let mut ray_x: f32;
         let mut ray_y: f32;
 
-        let offset_x: f32;
-        let offset_y: f32;
+        let mut offset_x: f32;
+        let mut offset_y: f32;
 
         let mut map_pos: Vec2;
         let mut map_idx: f32;
@@ -111,12 +111,13 @@ pub fn draw_rays(
 
         // --- Check Horizontal lines ---
         if player.angle == 0. || player.angle == PI {
-            player.angle = 0.001;
+            // player.angle = 0.001;
             ray_x = player_x;
             ray_y = player_y;
 
             offset_y = -64.;
             offset_x = 0.0;
+            dof = 8;
         } else if player.angle > PI {
             // looking down
             ray_y = (player_y / 64.).floor() * 64. - epsilon;
@@ -154,6 +155,56 @@ pub fn draw_rays(
             transform.translation.xy(),
             Vec2::new(ray_x, ray_y),
             Color::from(RED),
+        );
+
+        dof = 0;
+        // --- Check VERTICAL lines ---
+        if player.angle < FRAC_PI_2 || player.angle > 3. * FRAC_PI_2 {
+            // looking RIGHT
+            ray_x = 64. + (player_x / 64.).floor() * 64. + epsilon;
+            ray_y = player_y + (ray_x - player_x) * player.angle.tan();
+
+            offset_x = 64.;
+            offset_y = offset_x * player.angle.tan();
+        } else if player.angle > FRAC_PI_2 && player.angle < 3. * FRAC_PI_2 {
+            // looking left
+            ray_x = (player_x / 64.).floor() * 64. - epsilon;
+            ray_y = player_y + (ray_x - player_x) * player.angle.tan();
+
+            offset_x = -64.;
+            offset_y = offset_x * player.angle.tan();
+        } else {
+            ray_x = player_x;
+            ray_y = player_y;
+
+            offset_y = -64.;
+            offset_x = 0.0;
+            dof = 8;
+        }
+
+        while dof < 8 {
+            map_pos = Vec2::new(
+                ((ray_x + 256.) / 64.).trunc(),
+                ((256. - ray_y) / 64.).trunc(),
+            );
+
+            map_idx = map_pos.y * 8. + map_pos.x;
+
+            println!("map pos: {}", map_pos);
+
+            if map_idx < 64. && MAP[map_idx as usize] == 1 {
+                dof = 8;
+            } else {
+                ray_x += offset_x;
+                ray_y += offset_y;
+                dof += 1;
+            }
+        }
+
+        gizmos.line_2d(
+            transform.translation.xy(),
+            Vec2::new(ray_x, ray_y),
+            Color::from(BLUE),
         );
     }
 }

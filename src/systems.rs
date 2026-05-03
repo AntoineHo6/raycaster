@@ -1,17 +1,6 @@
-use bevy::{color::palettes::css::BLUE, prelude::*};
+use bevy::prelude::*;
 
 use crate::MAP;
-
-// const MAP: [[u8; 8]; 8] = [
-//     [1, 1, 1, 1, 1, 1, 1, 1],
-//     [1, 0, 0, 0, 0, 0, 0, 1],
-//     [1, 0, 0, 0, 0, 0, 0, 1],
-//     [1, 0, 0, 0, 0, 1, 0, 1],
-//     [1, 0, 0, 0, 0, 0, 0, 1],
-//     [1, 0, 0, 0, 0, 0, 0, 1],
-//     [1, 0, 0, 0, 0, 0, 0, 1],
-//     [1, 1, 1, 1, 1, 1 ,1 ,1],
-// ]; 
 
 pub fn spawn_map(mut commands: Commands, mut windows: Query<&mut Window>) {
     // Set the window res
