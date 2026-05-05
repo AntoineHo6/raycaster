@@ -8,6 +8,8 @@ use crate::MAP;
 
 use super::components::Player;
 
+const DEGREE: f32 = 0.0174533;
+
 pub fn spawn_player(mut commands: Commands) {
     commands.spawn((
         Sprite {
@@ -53,18 +55,10 @@ pub fn player_sight_controls(
 ) {
     if let Ok(mut player) = player_query.single_mut() {
         if keyboard_input.pressed(KeyCode::KeyA) {
-            player.angle += 0.025;
-
-            if player.angle > 2. * PI {
-                player.angle -= 2. * PI;
-            }
+            player.angle = rotate_angle(player.angle, 0.025);
         }
-        if keyboard_input.pressed(KeyCode::KeyD) {
-            player.angle -= 0.025;
-
-            if player.angle < 0. {
-                player.angle += 2. * PI;
-            }
+        else if keyboard_input.pressed(KeyCode::KeyD) {
+            player.angle = rotate_angle(player.angle, -0.025);
         }
     }
 }
@@ -213,13 +207,40 @@ pub fn draw_rays(
     mut player_query: Query<(&mut Transform, &mut Player), With<Player>>,
 ) {
     if let Ok((transform, player)) = player_query.single_mut() {
-        let (ray_pos_h, dist_h) = compute_h_ray_len(transform.translation.xy(), player.angle);
-        let (ray_pos_v, dist_v) = compute_v_ray_len(transform.translation.xy(), player.angle);
+        let mut degree_offset = -30. * DEGREE;
 
-        if dist_h > dist_v {
-            gizmos.line_2d(transform.translation.xy(), ray_pos_v, Color::from(RED));
-        } else {
-            gizmos.line_2d(transform.translation.xy(), ray_pos_h, Color::from(RED));
+        for _ in 1..=60 {
+            let (ray_pos_h, dist_h) = compute_h_ray_len(
+                transform.translation.xy(),
+                rotate_angle(player.angle, degree_offset),
+            );
+            let (ray_pos_v, dist_v) = compute_v_ray_len(
+                transform.translation.xy(),
+                rotate_angle(player.angle, degree_offset),
+            );
+
+            let final_ray_pos: Vec2;
+            if dist_h > dist_v {
+                final_ray_pos = ray_pos_v;
+            } else {
+                final_ray_pos = ray_pos_h;
+            }
+
+            gizmos.line_2d(transform.translation.xy(), final_ray_pos, Color::from(RED));
+
+            degree_offset += DEGREE;
         }
     }
+}
+
+fn rotate_angle(angle: f32, rotation: f32) -> f32 {
+    let mut new_angle: f32 = angle + rotation;
+
+    if new_angle > 2. * PI {
+        new_angle -= 2. * PI;
+    } else if new_angle < 0. {
+        new_angle += 2. * PI;
+    }
+
+    return new_angle;
 }
