@@ -1,0 +1,3 @@
+# This allows the use of unstable/experimental formatting rules
+unstable_features = true
+control_brace_style = "AlwaysNextLine"
