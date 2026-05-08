@@ -9,6 +9,7 @@ pub fn spawn_cameras(mut commands: Commands, mut windows: Query<&mut Window>) {
     commands.spawn((
         Camera2d,
         Camera {
+            order: 0,
             viewport: Some(Viewport {
                 physical_position: UVec2::new(0, 0),
                 physical_size: UVec2::new(512, 512),
@@ -22,6 +23,7 @@ pub fn spawn_cameras(mut commands: Commands, mut windows: Query<&mut Window>) {
     commands.spawn((
         Camera2d,
         Camera {
+            order: 1,
             viewport: Some(Viewport {
                 physical_position: UVec2::new(512, 0),
                 physical_size: UVec2::new(512, 512),
