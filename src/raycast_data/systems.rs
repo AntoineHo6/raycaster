@@ -10,24 +10,30 @@ use super::resource::*;
 
 pub fn update_rays(mut player_query: Query<(&mut Transform, &mut Player), With<Player>>, mut raycast_data: ResMut<RaycastData>) {
     if let Ok((transform, player)) = player_query.single_mut() {
-        let mut degree_offset = -(raycast_data.ray_count as f32/2.) * DEGREE;
+        let mut degree_offset = -((raycast_data.ray_count as f32)/2.) * DEGREE;
 
         for i in 0..raycast_data.ray_count as usize {
-            let (ray_pos_h, dist_h) = compute_h_ray_dist(
+            let ray_angle = rot_angle(player.angle, degree_offset);
+
+            let (ray_pos_h, dist_h) = compute_h_ray(
                 &transform.translation.xy(),
-                rot_angle(player.angle, degree_offset),
+                ray_angle,
             );
-            let (ray_pos_v, dist_v) = compute_v_ray_dist(
+            let (ray_pos_v, dist_v) = compute_v_ray(
                 &transform.translation.xy(),
-                rot_angle(player.angle, degree_offset),
+                ray_angle,
             );
 
             if dist_h > dist_v {
                 raycast_data.hit_pos[i] = ray_pos_v;
                 raycast_data.dist[i] = dist_v;
+                raycast_data.angle[i] = ray_angle;
+                raycast_data.hit_vert_line[i] = true;
             } else {
                 raycast_data.hit_pos[i] = ray_pos_h;
                 raycast_data.dist[i] = dist_h;
+                raycast_data.angle[i] = ray_angle;
+                raycast_data.hit_vert_line[i] = false;
             }
 
             degree_offset += DEGREE;
@@ -35,8 +41,8 @@ pub fn update_rays(mut player_query: Query<(&mut Transform, &mut Player), With<P
     }
 }
 
-fn compute_h_ray_dist(player_pos: &Vec2, player_angle: f32) -> (Vec2, f32) {
-    let arc_tan = 1. / player_angle.tan();
+fn compute_h_ray(player_pos: &Vec2, angle: f32) -> (Vec2, f32) {
+    let arc_tan = 1. / angle.tan();
 
     let mut ray_x: f32;
     let mut ray_y: f32;
@@ -51,14 +57,14 @@ fn compute_h_ray_dist(player_pos: &Vec2, player_angle: f32) -> (Vec2, f32) {
     let epsilon: f32 = 0.001;
 
     // --- Check Horizontal lines ---
-    if player_angle == 0. || player_angle == PI {
+    if angle == 0. || angle == PI {
         ray_x = player_pos.x;
         ray_y = player_pos.y;
 
         offset_y = -64.;
         offset_x = 0.0;
         dof = 8;
-    } else if player_angle > PI {
+    } else if angle > PI {
         // looking down
         ray_y = (player_pos.y / 64.).floor() * 64. - epsilon;
         ray_x = player_pos.x + (ray_y - player_pos.y) * arc_tan;
@@ -97,7 +103,7 @@ fn compute_h_ray_dist(player_pos: &Vec2, player_angle: f32) -> (Vec2, f32) {
     return (ray_pos, dist_h);
 }
 
-fn compute_v_ray_dist(player_pos: &Vec2, player_angle: f32) -> (Vec2, f32) {
+fn compute_v_ray(player_pos: &Vec2, angle: f32) -> (Vec2, f32) {
     let mut ray_x: f32;
     let mut ray_y: f32;
 
@@ -111,20 +117,20 @@ fn compute_v_ray_dist(player_pos: &Vec2, player_angle: f32) -> (Vec2, f32) {
     let epsilon: f32 = 0.001;
 
     // --- Check VERTICAL lines ---
-    if player_angle < FRAC_PI_2 || player_angle > 3. * FRAC_PI_2 {
+    if angle < FRAC_PI_2 || angle > 3. * FRAC_PI_2 {
         // looking RIGHT
         ray_x = 64. + (player_pos.x / 64.).floor() * 64. + epsilon;
-        ray_y = player_pos.y + (ray_x - player_pos.x) * player_angle.tan();
+        ray_y = player_pos.y + (ray_x - player_pos.x) * angle.tan();
 
         offset_x = 64.;
-        offset_y = offset_x * player_angle.tan();
-    } else if player_angle > FRAC_PI_2 && player_angle < 3. * FRAC_PI_2 {
+        offset_y = offset_x * angle.tan();
+    } else if angle > FRAC_PI_2 && angle < 3. * FRAC_PI_2 {
         // looking left
         ray_x = (player_pos.x / 64.).floor() * 64. - epsilon;
-        ray_y = player_pos.y + (ray_x - player_pos.x) * player_angle.tan();
+        ray_y = player_pos.y + (ray_x - player_pos.x) * angle.tan();
 
         offset_x = -64.;
-        offset_y = offset_x * player_angle.tan();
+        offset_y = offset_x * angle.tan();
     } else {
         ray_x = player_pos.x;
         ray_y = player_pos.y;

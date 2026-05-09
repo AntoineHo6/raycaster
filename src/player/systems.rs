@@ -1,10 +1,9 @@
 use bevy::prelude::*;
 
 use crate::RayGizmos;
-use crate::utils::rot_angle;
-use crate::{
-    raycast_data::resource::RaycastData,
-};
+use crate::constants::MAP;
+use crate::raycast_data::resource::RaycastData;
+use crate::utils::{rot_angle, screen_pos_to_grid_pos};
 use bevy::color::palettes::basic::RED;
 use bevy::math::Rot2;
 
@@ -20,7 +19,7 @@ pub fn spawn_player(mut commands: Commands) {
         Transform::from_xyz(0., 0., 1.),
         Player {
             // in radians
-            angle: 0.001,
+            angle: 0.,
         },
     ));
 }
@@ -44,7 +43,15 @@ pub fn player_movement(
 
         if direction != Vec2::ZERO {
             direction = direction.normalize();
-            player_transform.translation += direction.extend(0.) * 150. * time.delta_secs();
+            let p_new_pos = player_transform.translation + direction.extend(0.) * 150. * time.delta_secs();
+
+            let p_new_grid_pos = screen_pos_to_grid_pos(p_new_pos.xy());
+
+            let map_idx = p_new_grid_pos.y * 8. + p_new_grid_pos.x;
+
+            if MAP[map_idx as usize] == 0 {
+                player_transform.translation = p_new_pos;
+            }
         }
     }
 }

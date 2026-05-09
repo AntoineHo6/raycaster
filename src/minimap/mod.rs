@@ -3,6 +3,7 @@ use bevy::prelude::*;
 mod systems;
 use systems::*;
 
+
 pub struct MinimapPlugin;
 
 impl Plugin for MinimapPlugin {
